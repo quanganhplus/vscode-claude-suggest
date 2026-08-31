@@ -1,0 +1,266 @@
+{
+    "name":  "claude-suggest-code",
+    "displayName":  "Claude Suggest Code",
+    "description":  "Gợi ý code inline (ghost text) và sinh / giải thích / refactor code bằng Claude API",
+    "version":  "0.1.0",
+    "publisher":  "local",
+    "license":  "MIT",
+    "engines":  {
+                    "vscode":  "^1.85.0"
+                },
+    "categories":  [
+                       "Programming Languages",
+                       "Machine Learning",
+                       "Other"
+                   ],
+    "keywords":  [
+                     "claude",
+                     "anthropic",
+                     "ai",
+                     "code suggestion",
+                     "completion"
+                 ],
+    "activationEvents":  [
+                             "onStartupFinished"
+                         ],
+    "main":  "./src/extension.js",
+    "contributes":  {
+                        "commands":  [
+                                         {
+                                             "command":  "claudeSuggest.setApiKey",
+                                             "title":  "Nhập / cập nhật API Key",
+                                             "category":  "Claude"
+                                         },
+                                         {
+                                             "command":  "claudeSuggest.clearApiKey",
+                                             "title":  "Xoá API Key đã lưu",
+                                             "category":  "Claude"
+                                         },
+                                         {
+                                             "command":  "claudeSuggest.triggerInline",
+                                             "title":  "Gợi ý code tại con trỏ",
+                                             "category":  "Claude"
+                                         },
+                                         {
+                                             "command":  "claudeSuggest.generate",
+                                             "title":  "Sinh code từ mô tả / vùng chọn",
+                                             "category":  "Claude"
+                                         },
+                                         {
+                                             "command":  "claudeSuggest.explain",
+                                             "title":  "Giải thích code đã chọn",
+                                             "category":  "Claude"
+                                         },
+                                         {
+                                             "command":  "claudeSuggest.refactor",
+                                             "title":  "Refactor / tối ưu code đã chọn",
+                                             "category":  "Claude"
+                                         },
+                                         {
+                                             "command":  "claudeSuggest.toggleAuto",
+                                             "title":  "Bật / tắt gợi ý tự động",
+                                             "category":  "Claude"
+                                         },
+                                         {
+                                             "command":  "claudeSuggest.switchBackend",
+                                             "title":  "Doi backend (CLI / API)",
+                                             "category":  "Claude"
+                                         },
+                                         {
+                                             "command":  "claudeSuggest.menu",
+                                             "title":  "Bảng lệnh nhanh (phím tắt)",
+                                             "category":  "Claude"
+                                         },
+                                         {
+                                             "command":  "claudeSuggest.showLog",
+                                             "title":  "Mở log",
+                                             "category":  "Claude"
+                                         }
+                                     ],
+                        "keybindings":  [
+                                            {
+                                                "command":  "claudeSuggest.triggerInline",
+                                                "key":  "alt+\\",
+                                                "when":  "editorTextFocus"
+                                            },
+                                            {
+                                                "command":  "claudeSuggest.generate",
+                                                "key":  "alt+;",
+                                                "when":  "editorTextFocus"
+                                            },
+                                            {
+                                                "command":  "claudeSuggest.explain",
+                                                "key":  "alt+\u0027",
+                                                "when":  "editorTextFocus"
+                                            },
+                                            {
+                                                "command":  "claudeSuggest.refactor",
+                                                "key":  "alt+/",
+                                                "when":  "editorTextFocus"
+                                            }
+                                        ],
+                        "menus":  {
+                                      "editor/context":  [
+                                                             {
+                                                                 "command":  "claudeSuggest.explain",
+                                                                 "group":  "claude@1",
+                                                                 "when":  "editorHasSelection"
+                                                             },
+                                                             {
+                                                                 "command":  "claudeSuggest.refactor",
+                                                                 "group":  "claude@2",
+                                                                 "when":  "editorHasSelection"
+                                                             },
+                                                             {
+                                                                 "command":  "claudeSuggest.generate",
+                                                                 "group":  "claude@3"
+                                                             }
+                                                         ]
+                                  },
+                        "configuration":  {
+                                              "title":  "Claude Suggest Code",
+                                              "properties":  {
+                                                                 "claudeSuggest.model":  {
+                                                                                             "type":  "string",
+                                                                                             "default":  "claude-sonnet-5",
+                                                                                             "markdownDescription":  "Model dùng cho các lệnh sinh / giải thích / refactor code. Ví dụ: `claude-sonnet-5`, `claude-opus-5`, `claude-sonnet-4-6`, `claude-haiku-4-5-20251001`."
+                                                                                         },
+                                                                 "claudeSuggest.inlineModel":  {
+                                                                                                   "type":  "string",
+                                                                                                   "default":  "claude-haiku-4-5-20251001",
+                                                                                                   "markdownDescription":  "Model dùng cho gợi ý inline (ghost text). Nên chọn model nhanh nhất vì được gọi liên tục khi gõ."
+                                                                                               },
+                                                                 "claudeSuggest.effort":  {
+                                                                                              "type":  "string",
+                                                                                              "default":  "high",
+                                                                                              "enum":  [
+                                                                                                           "",
+                                                                                                           "low",
+                                                                                                           "medium",
+                                                                                                           "high"
+                                                                                                       ],
+                                                                                              "markdownDescription":  "Mức `effort` gửi kèm request (chỉ hỗ trợ ở các model thế hệ 5). Để trống nếu model của bạn không hỗ trợ tham số này."
+                                                                                          },
+                                                                 "claudeSuggest.autoSuggest":  {
+                                                                                                   "type":  "boolean",
+                                                                                                   "default":  false,
+                                                                                                   "markdownDescription":  "Tự động gọi Claude khi đang gõ. **Lưu ý: tốn token.** Nếu tắt, chỉ gợi ý khi nhấn `Ctrl+Alt+Space`."
+                                                                                               },
+                                                                 "claudeSuggest.debounceMs":  {
+                                                                                                  "type":  "number",
+                                                                                                  "default":  1500,
+                                                                                                  "description":  "Thời gian chờ (ms) sau khi ngừng gõ mới gọi API. Chỉ áp dụng cho chế độ tự động."
+                                                                                              },
+                                                                 "claudeSuggest.contextLinesBefore":  {
+                                                                                                          "type":  "number",
+                                                                                                          "default":  60,
+                                                                                                          "description":  "Số dòng phía trước con trỏ được gửi làm ngữ cảnh."
+                                                                                                      },
+                                                                 "claudeSuggest.contextLinesAfter":  {
+                                                                                                         "type":  "number",
+                                                                                                         "default":  25,
+                                                                                                         "description":  "Số dòng phía sau con trỏ được gửi làm ngữ cảnh."
+                                                                                                     },
+                                                                 "claudeSuggest.inlineMaxTokens":  {
+                                                                                                       "type":  "number",
+                                                                                                       "default":  150,
+                                                                                                       "description":  "Giới hạn token đầu ra cho gợi ý inline."
+                                                                                                   },
+                                                                 "claudeSuggest.maxTokens":  {
+                                                                                                 "type":  "number",
+                                                                                                 "default":  2048,
+                                                                                                 "description":  "Giới hạn token đầu ra cho các lệnh sinh / giải thích / refactor."
+                                                                                             },
+                                                                 "claudeSuggest.baseUrl":  {
+                                                                                               "type":  "string",
+                                                                                               "default":  "https://api.anthropic.com",
+                                                                                               "description":  "Base URL của API (đổi nếu bạn đi qua gateway / proxy nội bộ)."
+                                                                                           },
+                                                                 "claudeSuggest.disabledLanguages":  {
+                                                                                                         "type":  "array",
+                                                                                                         "items":  {
+                                                                                                                       "type":  "string"
+                                                                                                                   },
+                                                                                                         "default":  [
+                                                                                                                         "plaintext",
+                                                                                                                         "markdown",
+                                                                                                                         "log",
+                                                                                                                         "dotenv",
+                                                                                                                         "properties"
+                                                                                                                     ],
+                                                                                                         "description":  "Các languageId không chạy gợi ý inline."
+                                                                                                     },
+                                                                 "claudeSuggest.extraInstructions":  {
+                                                                                                         "type":  "string",
+                                                                                                         "default":  "",
+                                                                                                         "description":  "Chỉ dẫn thêm gắn vào system prompt (ví dụ: coding convention của team)."
+                                                                                                     },
+                                                                 "claudeSuggest.backend":  {
+                                                                                               "type":  "string",
+                                                                                               "default":  "cli",
+                                                                                               "enum":  [
+                                                                                                            "cli",
+                                                                                                            "api"
+                                                                                                        ],
+                                                                                               "enumDescriptions":  [
+                                                                                                                        "Goi Claude Code CLI (dung thue bao Claude, khong ton credit API)",
+                                                                                                                        "Goi truc tiep api.anthropic.com (tinh tien theo token)"
+                                                                                                                    ],
+                                                                                               "markdownDescription":  "Nguon xu ly. `cli` dung thue bao Claude qua Claude Code, `api` dung credit Anthropic API."
+                                                                                           },
+                                                                 "claudeSuggest.cliPath":  {
+                                                                                               "type":  "string",
+                                                                                               "default":  "",
+                                                                                               "markdownDescription":  "Duong dan toi file thuc thi Claude Code. De trong = tu tim (`%APPDATA%\\npm\\claude.cmd` tren Windows)."
+                                                                                           },
+                                                                 "claudeSuggest.cliTimeoutMs":  {
+                                                                                                    "type":  "number",
+                                                                                                    "default":  60000,
+                                                                                                    "description":  "Thoi gian toi da cho mot lan goi CLI (ms)."
+                                                                                                },
+                                                                 "claudeSuggest.inlineEffort":  {
+                                                                                                    "type":  "string",
+                                                                                                    "default":  "low",
+                                                                                                    "enum":  [
+                                                                                                                 "",
+                                                                                                                 "low",
+                                                                                                                 "medium",
+                                                                                                                 "high"
+                                                                                                             ],
+                                                                                                    "markdownDescription":  "Muc effort cho goi y inline. De `low` cho nhanh; `high` chinh xac hon nhung cho lau."
+                                                                                                },
+                                                                 "claudeSuggest.inlineBackend":  {
+                                                                                                     "type":  "string",
+                                                                                                     "default":  "same",
+                                                                                                     "enum":  [
+                                                                                                                  "same",
+                                                                                                                  "cli",
+                                                                                                                  "api"
+                                                                                                              ],
+                                                                                                     "enumDescriptions":  [
+                                                                                                                              "Dung chung backend voi cac lenh",
+                                                                                                                              "Luon dung Claude Code CLI (~6-8s, khong ton credit)",
+                                                                                                                              "Luon dung API truc tiep (~1s, ton credit)"
+                                                                                                                          ],
+                                                                                                     "markdownDescription":  "Backend rieng cho goi y inline. Duong CLI co san ~6s do phai nap system prompt cua Claude Code, nen inline thuc te chi muot khi dat `api`."
+                                                                                                 },
+                                                                 "claudeSuggest.autoSuggestLanguages":  {
+                                                                                                            "type":  "array",
+                                                                                                            "items":  {
+                                                                                                                          "type":  "string"
+                                                                                                                      },
+                                                                                                            "default":  [
+                                                                                                                            "python"
+                                                                                                                        ],
+                                                                                                            "markdownDescription":  "Cac languageId duoc bat ghost text tu dong. De rong = ap dung cho moi ngon ngu. Vi du: `[\"python\",\"javascript\"]`."
+                                                                                                        }
+                                                             }
+                                          }
+                    },
+    "scripts":  {
+                    "lint":  "echo \"no linter configured\""
+                },
+    "devDependencies":  {
+                            "@types/vscode":  "^1.85.0"
+                        }
+}

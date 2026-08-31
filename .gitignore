@@ -1,0 +1,13 @@
+node_modules/
+out/
+dist/
+*.vsix
+.vscode-test/
+
+# Never commit keys - the extension uses VS Code SecretStorage
+.env
+.env.*
+
+*.log
+Thumbs.db
+.DS_Store
