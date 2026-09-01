@@ -4,7 +4,12 @@ Extension VS Code gợi ý code bằng Claude API: ghost text inline + lệnh si
 
 ## Cài đặt & chạy thử
 
-1. Mở thư mục `D:\extension_suggest_code` bằng VS Code.
+1. Clone repo rồi mở bằng VS Code:
+   ```bash
+   git clone https://github.com/quanganhplus/vscode-claude-suggest.git
+   cd vscode-claude-suggest
+   code .
+   ```
 2. Nhấn `F5` → mở cửa sổ **Extension Development Host** đã nạp sẵn extension.
 3. Trong cửa sổ mới: `Ctrl+Shift+P` → **Claude: Nhập / cập nhật API Key** → dán key `sk-ant-...`.
 4. Mở một file code bất kỳ và thử `Ctrl+Alt+Space`.
@@ -16,7 +21,7 @@ Chạy `npm install` chỉ để có gợi ý kiểu khi sửa code.
 
 ```powershell
 npm install -g @vscode/vsce
-cd D:\extension_suggest_code
+cd vscode-claude-suggest
 vsce package        # tạo claude-suggest-code-0.1.0.vsix
 code --install-extension claude-suggest-code-0.1.0.vsix
 ```
